@@ -1,0 +1,44 @@
+version: '3.8'
+name: iam
+services:
+  keycloak:
+    build:
+      context: ../keycloak
+    environment:
+      - KC_DB_URL_FILE=/run/secrets/postgres/url
+      - KC_DB_USERNAME_FILE=/run/secrets/postgres/user
+      - KC_DB_PASSWORD_FILE=/run/secrets/postgres/password
+      - KEYCLOAK_ADMIN_FILE=/run/secrets/console/user
+      - KEYCLOAK_ADMIN_PASSWORD_FILE=/run/secrets/console/password
+    ports:
+      - 2080:8080
+    volumes:
+      - ./secrets/dev/keycloak/postgres/:/run/secrets/postgres/
+      - ./secrets/dev/keycloak/console/:/run/secrets/console/
+    depends_on:
+      postgres:
+        condition: service_healthy
+  postgres:
+    image: postgres:16.2
+    restart: always
+    environment:
+      - POSTGRES_USER_FILE=/run/secrets/postgres/user
+      - POSTGRES_PASSWORD_FILE=/run/secrets/postgres/password
+      - POSTGRES_DB_FILE=/run/secrets/postgres/db
+    shm_size: 128mb
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./secrets/dev/keycloak/postgres/:/run/secrets/postgres/
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$(cat /run/secrets/postgres/user)\""]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+  adminer:
+    image: adminer:4.8.1
+    restart: always
+    ports:
+      - 9090:8080
+volumes:
+  postgres_data:
