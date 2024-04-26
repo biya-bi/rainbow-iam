@@ -15,8 +15,8 @@ services:
       - 2080:8080
     volumes:
       - ./secrets/dev/keycloak/access/:/run/secrets/access/
-      - ./secrets/dev/keycloak/postgres/:/run/secrets/postgres/
       - ./secrets/dev/keycloak/console/:/run/secrets/console/
+      - ./secrets/dev/keycloak/postgres/:/run/secrets/postgres/
     depends_on:
       postgres:
         condition: service_healthy
